@@ -21,23 +21,17 @@ df = pd.concat(chunks, ignore_index=True)
 df = df.dropna(subset=['p_recall', 'delta', 'learning_language'])
 df['learning_language'] = df['learning_language'].astype(str).str.strip()
 
-lang_counts = df['learning_language'].value_counts(normalize=True)
-major_langs = lang_counts[lang_counts >=0.10].index.tolist()
-print(f"Major languages (>=10%): {major_langs}")
-
 df.to_csv(os.path.join(output_dir, "duolingo_all_languages.csv"), index=False)
 print("Saved cleaned data with all languages.")
 
-for lang in major_langs:
+languages = df['learning_language'].unique()
+print(f"Detected {len(languages)} languages: {languages}")
+
+for lang in languages:
     subset = df[df['learning_language'] == lang]
-    subset.to_csv(os.path.join(output_dir, f"duolingo_{lang}.csv"), index=False)
-    print(f"Saved duolingo_{lang}.csv")
+    file_name = f"duolingo_{lang}.csv"
+    subset.to_csv(os.path.join(output_dir, file_name), index=False)
+    print(f"Saved cleaned data for language: {lang} to {file_name}")
 
-other_df = df[~df['learning_language'].isin(major_langs)]
-if not other_df.empty:
-    other_df.to_csv(os.path.join(output_dir, "duolingo_other_languages.csv"), index=False)
-    print("Saved duolingo_other_languages.csv")
-
-print("Data cleaning and segmentation completed.")
+print("Data cleaning and splitting completed.")
 print(f"Total cleaned rows: {len(df):,}")
-print(f"Languages >=10%: {len(major_langs)} | Other languages: {len(lang_counts) - len(major_langs)}")
